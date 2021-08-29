@@ -32,11 +32,8 @@ logger.addHandler(handler)
 
 
 def parse_homework_status(homework):
-    print(homework)
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
-    print(homework_name)
-    print(homework_status)
     homework_statuses = {
         'approved': 'Ревьюеру всё понравилось, работа зачтена!',
         'rejected': 'К сожалению, в работе нашлись ошибки.',
@@ -59,9 +56,9 @@ def get_homeworks(current_timestamp):
     payload = {'from_date': current_timestamp}
     try:
         homework_statuses = requests.get(url, headers=headers, params=payload)
+        return homework_statuses.json()
     except requests.exceptions.RequestException as e:
         raise f'Ошибка при запросе сервера Практикума: {e}'
-    return homework_statuses.json()['homeworks'][0]
 
 
 def send_message(message):
@@ -70,7 +67,7 @@ def send_message(message):
 
 def main():
     current_timestamp = int(time.time())  # Начальное значение timestamp
-    seconds_in_month = 60 * 60 * 24 * 30
+    seconds_in_month = 60 * 60 * 24 * 30 * 150
     time_brackets = current_timestamp - seconds_in_month
     while True:
         try:
