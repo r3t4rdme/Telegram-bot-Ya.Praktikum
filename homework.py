@@ -40,7 +40,7 @@ def parse_homework_status(homework):
         'reviewing': 'Проект на стадии ревью'
     }
     if homework_name is None:
-        logging.eror('Работа не найдена')
+        logging.error('Работа не найдена')
         return 'Работа не найдена'
     if homework_status in homework_statuses:
         verdict = homework_statuses[homework_status]
