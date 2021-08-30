@@ -32,6 +32,7 @@ logger.addHandler(handler)
 
 
 def parse_homework_status(homework):
+    print(homework)
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
     homework_statuses = {
@@ -41,13 +42,13 @@ def parse_homework_status(homework):
     }
     if homework_name is None:
         message: str = 'Работа не найдена'
-        logging.error(message)
+        logger.error(message)
         send_message(message)
     if homework_status in homework_statuses:
         verdict = homework_statuses[homework_status]
         return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
     message: str = 'Неизвестный статус'
-    logging.error(message)
+    logger.error(message)
     send_message(message)
 
 
@@ -58,10 +59,11 @@ def get_homeworks(current_timestamp):
         homework_statuses = requests.get(url, headers=headers, params=payload)
         return homework_statuses.json()
     except requests.exceptions.RequestException as e:
-        raise f'Ошибка при запросе сервера Практикума: {e}'
+        raise e('Ошибка при запросе сервера Практикума')
 
 
 def send_message(message):
+    logger.info('Бот отправил сообщение.')
     return bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
 
 
@@ -70,18 +72,17 @@ def main():
     seconds_in_month = 60 * 60 * 24 * 30 * 150
     time_brackets = current_timestamp - seconds_in_month
     while True:
+        logger.debug('Бот начал работу.')
         try:
-            logger.debug('Бот начал работу.')
             send_message(
                 parse_homework_status(
                     get_homeworks(time_brackets)
                 ))
-            logger.info('Бот отправил сообщение.')
             time.sleep(5 * 5)  # Опрашивать раз в пять минут
         except Exception as e:
-            error_message = f'Бот упал с ошибкой: {e}'
+            error_message = e('Бот упал с ошибкой')
             logger.error(error_message)
-            bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=error_message)
+            send_message(chat_id=TELEGRAM_CHAT_ID, text=error_message)
             time.sleep(5)
 
 
