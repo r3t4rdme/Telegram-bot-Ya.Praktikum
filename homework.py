@@ -32,7 +32,6 @@ logger.addHandler(handler)
 
 
 def parse_homework_status(homework):
-    print(homework)
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
     homework_statuses = {
@@ -59,7 +58,9 @@ def get_homeworks(current_timestamp):
         homework_statuses = requests.get(url, headers=headers, params=payload)
         return homework_statuses.json()
     except requests.exceptions.RequestException as e:
-        raise e('Ошибка при запросе сервера Практикума')
+        message: str = f'Ошибка при запросе сервера Практикума: {e}'
+        logger.error(message, exc_info=True)
+        send_message(message)
 
 
 def send_message(message):
@@ -71,8 +72,8 @@ def main():
     current_timestamp = int(time.time())  # Начальное значение timestamp
     seconds_in_month = 60 * 60 * 24 * 30 * 150
     time_brackets = current_timestamp - seconds_in_month
+    logger.debug('Бот начал работу.')
     while True:
-        logger.debug('Бот начал работу.')
         try:
             send_message(
                 parse_homework_status(
@@ -81,8 +82,8 @@ def main():
             time.sleep(5 * 5)  # Опрашивать раз в пять минут
         except Exception as e:
             error_message = e('Бот упал с ошибкой')
-            logger.error(error_message)
-            send_message(chat_id=TELEGRAM_CHAT_ID, text=error_message)
+            logger.error(error_message, exc_info=True)
+            send_message(error_message)
             time.sleep(5)
 
 
